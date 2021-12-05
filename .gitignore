@@ -5,3 +5,7 @@
 .pub/
 
 build/
+
+# Ignore platform files
+example/android/
+example/ios/
