@@ -14,13 +14,16 @@ typedef Page = Widget Function();
 class ProviderLocal<T extends Controller> extends StatefulWidget {
   final T _controller;
   final Page _page;
+  String? _nameForDebug;
 
-  const ProviderLocal({
+  ProviderLocal({
     Key? key,
+    String? nameForDebug,
     required T controller,
     required Page page,
   })  : _controller = controller,
         _page = page,
+        _nameForDebug = nameForDebug,
         super(key: key);
 
   static T of<T extends Controller>(BuildContext context) {
@@ -37,7 +40,8 @@ class _ProviderLocal extends State<ProviderLocal> with WidgetsBindingObserver {
   void _log(String methodName, {String? message}) {
     final ref = "$hashCode-${controller.hashCode}-${page.hashCode}";
     // ignore: avoid_print
-    print("($ref) [ Provider | $methodName ] ${message ?? ""}");
+    print(
+        "(${widget._nameForDebug}) - $ref - [ Provider | $methodName ] ${message ?? ""}");
   }
 
   Controller get controller => widget._controller;
@@ -51,8 +55,26 @@ class _ProviderLocal extends State<ProviderLocal> with WidgetsBindingObserver {
     controller.context = context;
     controller.init();
 
-    WidgetsBinding.instance!.addObserver(this);
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+    final materialApp = context.findAncestorWidgetOfExactType<MaterialApp>()!;
+    assert(
+      materialApp.navigatorObservers == null ||
+          materialApp.navigatorObservers!.isEmpty,
+      '''
+Do you need register the RouteObserver as a navigation observer in your MaterialApp (root).
+```
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+void main() {
+  runApp(MaterialApp(
+    home: Container(),
+    navigatorObservers: <RouteObserver<ModalRoute<void>>>[ routeObserver ],
+  ));
+}
+```
+''',
+    );
+
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _log("builded", message: "timestamp: $timeStamp");
       controller.builded(timeStamp);
     });
@@ -81,6 +103,30 @@ class _ProviderLocal extends State<ProviderLocal> with WidgetsBindingObserver {
         // _log("didChangeAppLifecycleState", message: "detached");
         break;
     }
+  }
+
+  @override
+  Future<bool> didPushRoute(String route) async {
+    _log("didPushRoute", message: "route: $route");
+    return true;
+  }
+
+  @override
+  Future<bool> didPopRoute() async {
+    _log("didPopRoute");
+    return true;
+  }
+
+  @override
+  void didUpdateWidget(covariant ProviderLocal<Controller> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _log("didUpdateWidget", message: "oldWidget: $oldWidget");
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _log("didChangeDependencies");
   }
 
   @override
