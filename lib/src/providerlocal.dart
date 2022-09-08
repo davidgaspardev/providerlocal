@@ -3,9 +3,7 @@
 // To add platforms, run `flutter create -t plugin --platforms <platforms> .` under the same
 // directory. You can also find a detailed instruction on how to add platforms in the `pubspec.yaml` at https://flutter.dev/docs/development/packages-and-plugins/developing-packages#plugin-platforms.
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:providerlocal/src/controller.dart';
 
 typedef Page = Widget Function();
@@ -14,9 +12,9 @@ typedef Page = Widget Function();
 class ProviderLocal<T extends Controller> extends StatefulWidget {
   final T _controller;
   final Page _page;
-  String? _nameForDebug;
+  final String? _nameForDebug;
 
-  ProviderLocal({
+  const ProviderLocal({
     Key? key,
     String? nameForDebug,
     required T controller,
@@ -134,7 +132,7 @@ void main() {
     _log("dispose");
     controller.dispose();
 
-    WidgetsBinding.instance!.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }
